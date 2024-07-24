@@ -145,28 +145,3 @@ table {
   transition: color 0.3s ease;
   align-items: center;
 }
-
-.sort-button:hover {
-  color: #555;
-}
-
-.sort-button:active {
-  color: #777;
-  outline: none;
-}
-.sort-button::after {
-  content: ""; /* Tạo nội dung ảo */
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 5px; /* Khoảng cách giữa văn bản và icon */
-}
-/* Icon mũi tên chỉ thị khi sắp xếp tăng dần */
-.sort-button[data-sort-state="asc"]::after {
-  font-family: "Font Awesome"; /* Đặt tên font chứa biểu tượng */
-  content: "\F124";
-}
-
-/* Icon mũi tên chỉ thị khi sắp xếp giảm dần */
-.sort-button[data-sort-state="desc"]::after {
-  content: "up"; /* Mũi tên xuống */
-}
