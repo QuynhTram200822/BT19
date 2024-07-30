@@ -10,6 +10,8 @@ let currentEditingStudent = null;
 let currentPage = 1;
 const perPage = 10;
 
+let originalStudents = [];
+
 function addStudent(event) {
   event.preventDefault();
   // Lấy giá trị từ form
@@ -31,13 +33,16 @@ function addStudent(event) {
   };
 
   students.push(newStudent);
+
+  originalStudents = [...students];
+
+
   document.getElementById('myForm').reset();
   renderStudentList();
 }
 document.getElementById('myForm').addEventListener('submit', addStudent);
 
 // Hàm để render danh sách sinh viên vào HTML
-let sortStates = ['asc', 'asc', 'asc', 'asc', 'asc', 'asc']
 
 function renderStudentList() {
   let studentListDiv = document.getElementById('studentList');
@@ -63,7 +68,6 @@ function renderStudentList() {
       sortButton.classList.add('sort-button');
       sortButton.addEventListener('click', function () {
         sortColumn(index);
-        updateSortButtons(index);
       });
       header.appendChild(sortButton);
     }
@@ -111,40 +115,61 @@ function renderStudentList() {
   renderPagination();
 }
 
-function sortColumn(index) {
-  students.sort(function (a, b) {
-    let keyA = Object.values(a)[index];
-    let keyB = Object.values(b)[index];
+const sortStates = {}; // To keep track of the sort state of each column
 
-    if (index === 5) {
-      keyA = new Date(keyA);
-      keyB = new Date(keyB);
-    }
+function sortColumn(columnIndex) {
+  let currentState = sortStates[columnIndex] || 'none'; // Default to 'none'
+  let newState;
+  let sortOrder;
 
-    if (sortStates[index] === 'asc') {
-      return keyA < keyB ? -1 : keyA > keyB ? 1 : 0;
-    } else {
-      return keyA > keyB ? -1 : keyA < keyB ? 1 : 0;
-    }
-  });
+  // Determine the new state and sort order based on the current state
+  if (currentState === 'none') {
+    newState = 'asc';
+    sortOrder = 1;
+  } else if (currentState === 'asc') {
+    newState = 'desc';
+    sortOrder = -1;
+  } else if (currentState === 'desc') {
+    newState = 'none';
+    sortOrder = 0;
+  }
+
+  // Sort the students array based on the new state
+  if (sortOrder === 0) {
+    // Reset to the original list if no sorting
+    students = [...originalStudents];
+  } else {
+    students.sort((a, b) => {
+      const aValue = Object.values(a)[columnIndex];
+      const bValue = Object.values(b)[columnIndex];
+
+      // Handle numeric and string sorting
+      if (typeof aValue === 'string') {
+        return (aValue.localeCompare(bValue)) * sortOrder;
+      } else if (typeof aValue === 'number') {
+        return (aValue - bValue) * sortOrder;
+      } else {
+        return 0;
+      }
+    });
+  }
+
+  // Update the sort state
+  sortStates[columnIndex] = newState;
+
+  // Render the student list and update sort buttons
   renderStudentList();
+  updateSortButtons(columnIndex);
 }
 
-function updateSortButtons(index) {
-  // Cập nhật biểu tượng của các nút sắp xếp
-  let sortButtons = document.querySelectorAll('.sort-button');
-  sortButtons.forEach(function (button, buttonIndex) {
-    if (buttonIndex === index) {
-      if (sortStates[index] === 'none' || sortStates[index] === 'desc') {
-        button.textContent = "\u2193";
-        sortStates[index] = 'asc';
-      } else {
-        button.textContent = "\u2191";
-        sortStates[index] = 'desc';
-      }
+function updateSortButtons(sortedIndex) {
+  document.querySelectorAll('.sort-button').forEach((btn, index) => {
+    if (sortStates[index] === 'asc') {
+      btn.textContent = "\u2191"; // Ascending arrow
+    } else if (sortStates[index] === 'desc') {
+      btn.textContent = "\u2193"; // Descending arrow
     } else {
-      button.textContent = "\u2195";
-      sortStates[buttonIndex] = 'none';
+      btn.textContent = "\u2195"; // Default arrow for 'none'
     }
   });
 }
